@@ -78,13 +78,10 @@ class Apple(GameObject):
 
     def __init__(self, occupied_positions=None):
         super().__init__(body_color=APPLE_COLOR)
-        self.randomize_position(occupied_positions)
+        self.randomize_position(occupied_positions or [])
 
-    def randomize_position(self, occupied_positions=None):
+    def randomize_position(self, occupied_positions):
         """Метод задает рандомные координаты."""
-        if occupied_positions is None:
-            occupied_positions = []
-
         while True:
             self.position = (
                 randint(0, GRID_WIDTH - 1) * GRID_SIZE,
@@ -104,6 +101,7 @@ class Snake(GameObject):
     def __init__(self):
         super().__init__(body_color=SNAKE_COLOR)
         self.reset()
+        self.direction = RIGHT
 
     def get_head_position(self):
         """Метод, который возвращает координаты головы змейки."""
@@ -131,14 +129,14 @@ class Snake(GameObject):
 
     def draw(self):
         """Метод отрисовки змеи."""
-        if self.last is not None:
+        if self.last:
             self.draw_cell(self.last, BOARD_BACKGROUND_COLOR)
 
         self.draw_cell(self.get_head_position(), self.body_color)
 
     def reset(self):
         """Вернуть змейку в начальное состояние."""
-        super().__init__(self.body_color)
+        self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.length = 1
         self.positions = [self.position]
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
@@ -173,7 +171,6 @@ def main():
     snake = Snake()
     apple = Apple(snake.positions)
 
-    screen.fill(BOARD_BACKGROUND_COLOR)
     snake.draw()
     apple.draw()
     pg.display.update()
@@ -190,7 +187,10 @@ def main():
             snake.length += 1
             apple.randomize_position(snake.positions)
 
-        elif snake.get_head_position() in snake.positions[1:]:
+        elif (
+                snake.length >= 5
+                and snake.get_head_position() in snake.positions[1:]
+        ):
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
             apple.randomize_position(snake.positions)
